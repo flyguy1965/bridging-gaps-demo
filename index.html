@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#9e1f3a">
+<meta name="description" content="Bridging Gaps: a sickle cell care app demo.">
+<title>Bridging Gaps</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+html{-webkit-text-size-adjust:100%}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}
+/* Layout: one phone-width app column, bottom tab bar, cards only where an object is tappable */
+:root {
+  --bg: #f3f5f7;
+  --surface: #ffffff;
+  --fg: #1b2230;
+  --muted: #5d6878;
+  --line: #dde2e9;
+  --accent: #9e1f3a;        /* claret: red cell */
+  --accent-soft: #f7e6ea;
+  --water: #1f7a8c;
+  --water-soft: #e2f1f4;
+  --ok: #2f7d4f;
+  --warn: #b25e09;
+  --danger: #b3261e;
+  --danger-soft: #fbe9e7;
+  --display: "Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --body: "Atkinson Hyperlegible", system-ui, -apple-system, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11151c; --surface: #1a2029; --fg: #e8ecf2; --muted: #9aa5b5; --line: #2b3340;
+    --accent: #ef6f8a; --accent-soft: #3a1c25; --water: #5cc3d6; --water-soft: #15313a;
+    --ok: #6fcf97; --warn: #f0a85a; --danger: #ff8a80; --danger-soft: #3b1d1b;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11151c; --surface: #1a2029; --fg: #e8ecf2; --muted: #9aa5b5; --line: #2b3340;
+  --accent: #ef6f8a; --accent-soft: #3a1c25; --water: #5cc3d6; --water-soft: #15313a;
+  --ok: #6fcf97; --warn: #f0a85a; --danger: #ff8a80; --danger-soft: #3b1d1b;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 16px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.app { max-width: 420px; margin: 0 auto; padding-block: 12px 104px; display: flex; flex-direction: column; gap: 20px; }
+h1, h2, h3 { font-family: var(--display); margin: 0; text-wrap: balance; line-height: 1.2; }
+h1 { font-size: 28px; font-weight: 700; }
+h2 { font-size: 20px; font-weight: 700; }
+h3 { font-size: 16px; font-weight: 700; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+.label { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 700; }
+.demo { font-size: 13px; color: var(--muted); border: 1px dashed var(--line); border-radius: 8px; padding: 8px 12px; }
+.top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.brand { display: flex; align-items: center; gap: 8px; font-family: var(--display); font-weight: 700; font-size: 18px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.section { display: flex; flex-direction: column; gap: 12px; }
+.row { display: flex; align-items: center; gap: 12px; }
+.row > .grow { flex: 1; min-width: 0; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.btn { min-height: 44px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); padding: 0 16px; font-weight: 700; transition: background-color .15s, transform .1s; }
+.btn:active { transform: scale(.97); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+:root[data-theme="dark"] .btn.primary { color: #1a0a0f; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .btn.primary { color: #1a0a0f; } }
+.btn.block { width: 100%; }
+.alert { background: var(--danger-soft); color: var(--fg); border-radius: 12px; padding: 12px 14px; display: flex; gap: 10px; font-size: 14px; }
+.alert strong { color: var(--danger); }
+
+/* Hydration */
+.cups { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; }
+.cup { aspect-ratio: 2/3; max-width: 100%; border-radius: 4px 4px 8px 8px; border: 2px solid var(--water); background: transparent; padding: 0; }
+.cup.full { background: var(--water); }
+.big { font-family: var(--display); font-size: 32px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; }
+
+/* Pain sparkline */
+.spark { width: 100%; height: 96px; display: block; }
+.spark text { fill: var(--muted); font-size: 10px; font-family: var(--body); }
+
+/* Pain log */
+.scale { display: grid; grid-template-columns: repeat(11, 1fr); gap: 4px; }
+.scale button { min-height: 44px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); font-weight: 700; font-variant-numeric: tabular-nums; padding: 0; }
+.scale button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { min-height: 40px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); padding: 0 14px; font-size: 14px; }
+.chip[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 700; }
+.body-map { display: flex; justify-content: center; }
+.body-map svg { width: 180px; height: auto; max-width: 100%; }
+.region { fill: var(--line); stroke: var(--bg); stroke-width: 2; cursor: pointer; transition: fill .15s; }
+.region.on { fill: var(--accent); }
+.region:focus-visible { outline: none; stroke: var(--fg); }
+.entry { display: flex; gap: 12px; align-items: flex-start; padding-block: 10px; border-top: 1px solid var(--line); }
+.entry:first-child { border-top: 0; }
+.sev { min-width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; font-weight: 700; font-variant-numeric: tabular-nums; color: #fff; }
+
+/* Meds */
+.med { display: flex; align-items: center; gap: 12px; padding-block: 12px; border-top: 1px solid var(--line); }
+.med:first-of-type { border-top: 0; }
+.check { width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--line); background: transparent; display: grid; place-items: center; flex-shrink: 0; }
+.check[aria-pressed="true"] { background: var(--ok); border-color: var(--ok); color: var(--surface); }
+.pill { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--water-soft); color: var(--water); white-space: nowrap; }
+.pill.due { background: var(--accent-soft); color: var(--accent); }
+.pill.done { background: transparent; color: var(--ok); }
+
+/* Crisis */
+.er-card { background: var(--surface); border: 2px solid var(--accent); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; font-size: 15px; }
+dt { color: var(--muted); }
+dd { margin: 0; font-weight: 700; min-width: 0; }
+ol, ul { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
+.flag { display: flex; gap: 10px; padding-block: 10px; border-top: 1px solid var(--line); }
+.flag:first-child { border-top: 0; }
+.flag b { color: var(--danger); }
+.num { font-family: var(--display); font-size: 22px; font-weight: 700; user-select: all; }
+
+/* Tab bar */
+nav.tabs {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 5;
+  background: var(--surface); border-top: 1px solid var(--line);
+  padding: 6px max(8px, env(safe-area-inset-right, 0px)) calc(6px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px));
+}
+nav.tabs .inner { max-width: 420px; margin: 0 auto; display: grid; grid-template-columns: repeat(5, 1fr); }
+nav.tabs button { background: none; border: 0; min-height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 11px; color: var(--muted); border-radius: 10px; }
+nav.tabs button[aria-selected="true"] { color: var(--accent); font-weight: 700; }
+nav.tabs svg { width: 24px; height: 24px; }
+.toast { position: fixed; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--fg); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-size: 14px; font-weight: 700; z-index: 6; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><rect width="28" height="28" rx="8" fill="var(--accent)"/><path d="M4 20h20M6 20v-4a8 8 0 0 1 16 0v4M10 20v-3M14 20v-4M18 20v-3" stroke="var(--surface)" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+      Bridging Gaps
+    </div>
+    <span class="label" id="today-date"></span>
+  </header>
+  <p class="demo">Demo with sample data for a fictional patient. Not medical advice. Follow the plan from your own care team.</p>
+
+  <!-- TODAY -->
+  <section id="view-today" class="section" data-view>
+    <h1>Good morning, Jordan</h1>
+    <div class="alert" role="note">
+      <span aria-hidden="true">!</span>
+      <p><strong>Fever of 101°F (38.3°C) or higher is an emergency</strong> with sickle cell disease. Call your hematology team or go to the ER right away.</p>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <div class="grow">
+          <p class="label">Water today</p>
+          <p><span class="big" id="water-count">0</span> <span class="muted">of 10 cups (8 oz)</span></p>
+        </div>
+        <button class="btn primary" id="add-water" aria-label="Add one cup of water">+ Cup</button>
+      </div>
+      <div class="cups" id="cups" aria-label="Cups of water, tap to set"></div>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <div class="grow">
+          <p class="label">Pain, last 7 days</p>
+          <p class="muted" id="pain-summary"></p>
+        </div>
+        <button class="btn" data-go="log">Log pain</button>
+      </div>
+      <svg class="spark" id="spark" viewBox="0 0 320 96" role="img" aria-label="Pain score chart"></svg>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <p class="label grow">Medications</p>
+        <button class="btn" data-go="meds">All meds</button>
+      </div>
+      <p id="meds-summary"></p>
+    </div>
+  </section>
+
+  <!-- LOG -->
+  <section id="view-log" class="section" data-view hidden>
+    <h1>Log pain</h1>
+    <div class="card">
+      <h3>How bad is it right now?</h3>
+      <p class="muted">0 is no pain, 10 is the worst pain you can imagine.</p>
+      <div class="scale" id="scale"></div>
+    </div>
+    <div class="card">
+      <h3>Where does it hurt?</h3>
+      <div class="body-map">
+        <svg viewBox="0 0 120 240" id="body" aria-label="Body map, tap areas that hurt">
+          <circle class="region" data-r="Head" cx="60" cy="22" r="16"/>
+          <rect class="region" data-r="Chest" x="38" y="44" width="44" height="40" rx="10"/>
+          <rect class="region" data-r="Belly" x="40" y="86" width="40" height="34" rx="10"/>
+          <rect class="region" data-r="Lower back" x="40" y="122" width="40" height="18" rx="6"/>
+          <rect class="region" data-r="Left arm" x="14" y="46" width="20" height="78" rx="10"/>
+          <rect class="region" data-r="Right arm" x="86" y="46" width="20" height="78" rx="10"/>
+          <rect class="region" data-r="Left leg" x="40" y="144" width="18" height="90" rx="9"/>
+          <rect class="region" data-r="Right leg" x="62" y="144" width="18" height="90" rx="9"/>
+        </svg>
+      </div>
+      <p class="muted" id="regions-picked">Nothing selected</p>
+    </div>
+    <div class="card">
+      <h3>Anything that might have set it off?</h3>
+      <div class="chips" id="triggers"></div>
+    </div>
+    <button class="btn primary block" id="save-log">Save entry</button>
+    <div class="card">
+      <h3>Recent entries</h3>
+      <div id="entries"></div>
+    </div>
+  </section>
+
+  <!-- MEDS -->
+  <section id="view-meds" class="section" data-view hidden>
+    <h1>Medications</h1>
+    <div class="card" id="med-list"></div>
+    <div class="card">
+      <h3>Pain plan at home</h3>
+      <ol>
+        <li>Start your prescribed pain medicine early, at the first sign of a crisis.</li>
+        <li>Drink extra water and keep warm. Avoid ice packs.</li>
+        <li>Rest, use a heating pad, and log your pain every 2–3 hours.</li>
+        <li>If pain is not better after your planned doses, call the clinic or go to the ER.</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- CRISIS -->
+  <section id="view-crisis" class="section" data-view hidden>
+    <h1>Crisis plan</h1>
+    <div class="card">
+      <p class="label">Emergency</p>
+      <p class="num">911</p>
+      <p class="muted">Call for chest pain, trouble breathing, or signs of stroke.</p>
+    </div>
+    <div class="er-card">
+      <p class="label">Show this to ER staff</p>
+      <h2>Jordan Ellis has sickle cell disease</h2>
+      <dl>
+        <dt>Genotype</dt><dd>HbSS</dd>
+        <dt>Baseline Hb</dt><dd>8.2 g/dL</dd>
+        <dt>Blood type</dt><dd>O+, extended match on file</dd>
+        <dt>Allergies</dt><dd>Morphine (itching)</dd>
+        <dt>Hematologist</dt><dd>Dr. A. Okafor</dd>
+      </dl>
+      <p>Per my individualized plan: please assess and treat pain within 60 minutes of arrival, and check temperature and oxygen.</p>
+    </div>
+    <div class="card">
+      <h3>Go to the ER now if you have</h3>
+      <div>
+        <div class="flag"><b>Fever</b><span>101°F (38.3°C) or higher</span></div>
+        <div class="flag"><b>Chest</b><span>Chest pain, cough or shortness of breath (possible acute chest syndrome)</span></div>
+        <div class="flag"><b>Stroke</b><span>Face drooping, arm weakness, slurred speech, sudden vision change</span></div>
+        <div class="flag"><b>Belly</b><span>Swollen belly or sudden pain on the left side (spleen)</span></div>
+        <div class="flag"><b>Pain</b><span>Pain your home plan can't control</span></div>
+        <div class="flag"><b>Priapism</b><span>Painful erection lasting more than 2 hours</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TEAM -->
+  <section id="view-team" class="section" data-view hidden>
+    <h1>Care team</h1>
+    <div class="card">
+      <p class="label">Next visit</p>
+      <h2>Thu, Nov 13 · 10:30 AM</h2>
+      <p class="muted">Hematology clinic, labs 30 min before. Bring your pain log.</p>
+    </div>
+    <div class="card">
+      <div class="row">
+        <div class="grow"><h3>Dr. A. Okafor</h3><p class="muted">Hematologist</p></div>
+      </div>
+      <p class="num">(555) 014-2290</p>
+      <p class="muted">Clinic line, 24-hour on-call after hours</p>
+    </div>
+    <div class="card">
+      <p class="label">Hemoglobin, last 6 checks (g/dL)</p>
+      <svg class="spark" id="hb" viewBox="0 0 320 96" role="img" aria-label="Hemoglobin chart"></svg>
+    </div>
+    <button class="btn block" id="reset">Reset demo data</button>
+  </section>
+</div>
+
+<nav class="tabs" aria-label="Sections">
+  <div class="inner" role="tablist">
+    <button role="tab" data-tab="today" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>Today</button>
+    <button role="tab" data-tab="log"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Log</button>
+    <button role="tab" data-tab="meds"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="9" width="18" height="7" rx="3.5" transform="rotate(-35 12 12.5)"/><path d="M9.5 8.5l5 7"/></svg>Meds</button>
+    <button role="tab" data-tab="crisis"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17h.01"/></svg>Crisis</button>
+    <button role="tab" data-tab="team"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-4-6"/></svg>Team</button>
+  </div>
+</nav>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const STORE_KEY = "bridging-gaps-demo-v1";
+const TRIGGERS = ["Cold weather", "Not enough water", "Stress", "Poor sleep", "Hard exercise", "Sick / infection", "Period", "Travel / altitude"];
+const MEDS = [
+  { id: "hu", name: "Hydroxyurea", dose: "1,000 mg capsule", when: "8:00 AM" },
+  { id: "fa", name: "Folic acid", dose: "1 mg tablet", when: "8:00 AM" },
+  { id: "vd", name: "Vitamin D3", dose: "2,000 IU", when: "8:00 AM" },
+  { id: "ib", name: "Ibuprofen", dose: "400 mg, as needed for pain", when: "As needed" },
+];
+const HB = [7.9, 8.1, 8.4, 8.0, 8.3, 8.2];
+const todayKey = () => new Date().toISOString().slice(0, 10);
+
+function sampleState() {
+  const day = 86400000;
+  const scores = [2, 1, 3, 6, 4, 2, 1];
+  const entries = scores.map((score, i) => ({
+    date: new Date(Date.now() - (6 - i) * day).toISOString(),
+    score,
+    regions: score >= 4 ? ["Lower back", "Left leg"] : ["Lower back"],
+    triggers: score >= 6 ? ["Cold weather", "Poor sleep"] : [],
+  }));
+  return { water: 4, waterDay: todayKey(), taken: { hu: true }, takenDay: todayKey(), entries };
+}
+
+function load() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORE_KEY));
+    if (saved && Array.isArray(saved.entries)) return saved;
+  } catch (e) { /* storage unavailable: fall back to sample data */ }
+  return sampleState();
+}
+function save() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) { /* demo still works without storage */ }
+}
+
+let state = load();
+if (state.waterDay !== todayKey()) state = { ...state, water: 0, waterDay: todayKey() };
+if (state.takenDay !== todayKey()) state = { ...state, taken: {}, takenDay: todayKey() };
+let draft = { score: null, regions: [], triggers: [] };
+
+const $ = (id) => document.getElementById(id);
+const sevColor = (s) => s >= 7 ? "var(--danger)" : s >= 4 ? "var(--warn)" : "var(--ok)";
+
+function toast(msg) {
+  const t = $("toast");
+  t.textContent = msg; t.hidden = false;
+  clearTimeout(toast.timer);
+  toast.timer = setTimeout(() => { t.hidden = true; }, 2200);
+}
+
+function lineChart(svg, values, min, max, labels, color) {
+  const w = 320, h = 96, padL = 22, padR = 10, padT = 10, padB = 20;
+  const x = (i) => padL + i * (w - padL - padR) / (values.length - 1);
+  const y = (v) => padT + (1 - (v - min) / (max - min)) * (h - padT - padB);
+  const pts = values.map((v, i) => `${x(i)},${y(v)}`).join(" ");
+  const grid = [min, (min + max) / 2, max].map((g) =>
+    `<line x1="${padL}" x2="${w - padR}" y1="${y(g)}" y2="${y(g)}" stroke="var(--line)"/><text x="0" y="${y(g) + 3}">${g}</text>`).join("");
+  const area = `${padL},${y(min)} ${pts} ${x(values.length - 1)},${y(min)}`;
+  const last = values.length - 1;
+  svg.innerHTML = grid +
+    `<polygon points="${area}" fill="${color}" opacity=".12"/>` +
+    `<polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linejoin="round"/>` +
+    values.map((v, i) => `<circle cx="${x(i)}" cy="${y(v)}" r="${i === last ? 5 : 3}" fill="${color}"/>`).join("") +
+    labels.map((l, i) => `<text x="${x(i)}" y="${h - 4}" text-anchor="middle">${l}</text>`).join("");
+}
+
+function lastSevenDays() {
+  const days = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(Date.now() - i * 86400000);
+    const key = d.toISOString().slice(0, 10);
+    const dayEntries = state.entries.filter((e) => e.date.slice(0, 10) === key);
+    const max = dayEntries.length ? Math.max(...dayEntries.map((e) => e.score)) : 0;
+    days.push({ label: d.toLocaleDateString(undefined, { weekday: "narrow" }), max });
+  }
+  return days;
+}
+
+function renderToday() {
+  $("today-date").textContent = new Date().toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+  $("water-count").textContent = state.water;
+  $("cups").innerHTML = Array.from({ length: 10 }, (_, i) =>
+    `<button class="cup ${i < state.water ? "full" : ""}" data-cup="${i + 1}" aria-label="Set to ${i + 1} cups"></button>`).join("");
+  const days = lastSevenDays();
+  lineChart($("spark"), days.map((d) => d.max), 0, 10, days.map((d) => d.label), "var(--accent)");
+  const worst = Math.max(...days.map((d) => d.max));
+  $("pain-summary").textContent = `Highest this week: ${worst} of 10. Today: ${days[6].max}.`;
+  const due = MEDS.filter((m) => m.when !== "As needed" && !state.taken[m.id]);
+  $("meds-summary").textContent = due.length
+    ? `${due.length} due this morning: ${due.map((m) => m.name).join(", ")}.`
+    : "All scheduled doses taken today.";
+}
+
+function renderLog() {
+  $("scale").innerHTML = Array.from({ length: 11 }, (_, i) =>
+    `<button data-score="${i}" aria-pressed="${draft.score === i}">${i}</button>`).join("");
+  $("triggers").innerHTML = TRIGGERS.map((t) =>
+    `<button class="chip" data-trigger="${t}" aria-pressed="${draft.triggers.includes(t)}">${t}</button>`).join("");
+  document.querySelectorAll(".region").forEach((r) => {
+    r.classList.toggle("on", draft.regions.includes(r.dataset.r));
+    r.setAttribute("tabindex", "0");
+    r.setAttribute("role", "button");
+    r.setAttribute("aria-label", r.dataset.r);
+  });
+  $("regions-picked").textContent = draft.regions.length ? draft.regions.join(", ") : "Nothing selected";
+  const recent = [...state.entries].reverse().slice(0, 6);
+  $("entries").innerHTML = recent.map((e) => {
+    const d = new Date(e.date);
+    const when = d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" }) + ", " +
+      d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+    const details = [e.regions.join(", ") || "No area noted", e.triggers.length ? "Triggers: " + e.triggers.join(", ") : ""].filter(Boolean).join(" · ");
+    return `<div class="entry"><div class="sev" style="background:${sevColor(e.score)}">${e.score}</div><div class="grow" style="min-width:0"><p><b>${when}</b></p><p class="muted">${details}</p></div></div>`;
+  }).join("");
+}
+
+function renderMeds() {
+  $("med-list").innerHTML = MEDS.map((m) => {
+    const taken = !!state.taken[m.id];
+    const pill = taken ? `<span class="pill done">Taken</span>` : m.when === "As needed" ? `<span class="pill">As needed</span>` : `<span class="pill due">${m.when}</span>`;
+    return `<div class="med"><button class="check" data-med="${m.id}" aria-pressed="${taken}" aria-label="Mark ${m.name} taken"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" ${taken ? "" : 'opacity="0"'}><path d="M5 12l5 5 9-10"/></svg></button><div class="grow" style="min-width:0"><h3>${m.name}</h3><p class="muted">${m.dose}</p></div>${pill}</div>`;
+  }).join("");
+}
+
+function renderTeam() {
+  lineChart($("hb"), HB, 6, 10, ["May", "Jun", "Jul", "Aug", "Sep", "Oct"], "var(--water)");
+}
+
+function render() { renderToday(); renderLog(); renderMeds(); renderTeam(); }
+
+function go(tab) {
+  document.querySelectorAll("[data-view]").forEach((v) => { v.hidden = v.id !== "view-" + tab; });
+  document.querySelectorAll("[data-tab]").forEach((b) => b.setAttribute("aria-selected", b.dataset.tab === tab));
+  window.scrollTo(0, 0);
+}
+
+document.addEventListener("click", (ev) => {
+  const t = ev.target.closest("button, .region");
+  if (!t) return;
+  if (t.dataset.tab) return go(t.dataset.tab);
+  if (t.dataset.go) return go(t.dataset.go);
+  if (t.id === "add-water") { state = { ...state, water: Math.min(10, state.water + 1) }; save(); renderToday(); return toast(state.water >= 10 ? "Goal reached: 10 cups" : `${state.water} cups today`); }
+  if (t.dataset.cup) { const n = +t.dataset.cup; state = { ...state, water: state.water === n ? n - 1 : n }; save(); return renderToday(); }
+  if (t.dataset.score) { draft = { ...draft, score: +t.dataset.score }; return renderLog(); }
+  if (t.dataset.trigger) {
+    const v = t.dataset.trigger;
+    draft = { ...draft, triggers: draft.triggers.includes(v) ? draft.triggers.filter((x) => x !== v) : [...draft.triggers, v] };
+    return renderLog();
+  }
+  if (t.classList.contains("region")) {
+    const v = t.dataset.r;
+    draft = { ...draft, regions: draft.regions.includes(v) ? draft.regions.filter((x) => x !== v) : [...draft.regions, v] };
+    return renderLog();
+  }
+  if (t.id === "save-log") {
+    if (draft.score === null) return toast("Pick a pain score from 0 to 10 first");
+    state = { ...state, entries: [...state.entries, { date: new Date().toISOString(), ...draft }] };
+    const score = draft.score;
+    draft = { score: null, regions: [], triggers: [] };
+    save(); render();
+    if (score >= 7) { go("crisis"); return toast("Saved. Pain is high: check your crisis plan"); }
+    go("today"); return toast("Pain entry saved");
+  }
+  if (t.dataset.med) {
+    const id = t.dataset.med;
+    state = { ...state, taken: { ...state.taken, [id]: !state.taken[id] } };
+    save(); renderMeds(); renderToday();
+    return toast(state.taken[id] ? "Marked as taken" : "Unmarked");
+  }
+  if (t.id === "reset") { state = sampleState(); draft = { score: null, regions: [], triggers: [] }; save(); render(); go("today"); return toast("Demo data reset"); }
+});
+document.addEventListener("keydown", (ev) => {
+  if ((ev.key === "Enter" || ev.key === " ") && ev.target.classList && ev.target.classList.contains("region")) { ev.preventDefault(); ev.target.dispatchEvent(new MouseEvent("click", { bubbles: true })); }
+});
+
+render();
+</script>
+</body>
+</html>
